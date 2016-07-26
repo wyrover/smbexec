@@ -9,21 +9,20 @@
 #define WAIT_PIPE_TIME 20000
 
 
-int PipeRecv( HANDLE hPipe, char * szBuffer, DWORD dwSize );
-int PipeSend( HANDLE hPipe, char * szBuffer, DWORD dwSize );
-void ClosePipe( HANDLE hPipe );
-HANDLE CreateXPipe( char * szPipeName );
-HANDLE PipeConnect( char * szPipeName );
+int PipeRecv(HANDLE hPipe, char * szBuffer, DWORD dwSize);
+int PipeSend(HANDLE hPipe, char * szBuffer, DWORD dwSize);
+void ClosePipe(HANDLE hPipe);
+HANDLE CreateXPipe(char * szPipeName);
+HANDLE PipeConnect(char * szPipeName);
 
 #define NAME_LEN 32
 #define PASSWD_LEN 32
 #define CMD_LEN 1024
 
-typedef struct __LOGINFO__
-{
+typedef struct __LOGINFO__ {
     char szUserName[NAME_LEN];
     char szPassword[PASSWD_LEN];
     char szExcuteCmd[CMD_LEN];
-}LOGINFO, *PLOGINFO;
+} LOGINFO, *PLOGINFO;
 
 #endif

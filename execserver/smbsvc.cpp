@@ -9,11 +9,11 @@
 
 void ServiceDelete();
 
-void server_debug( char * str )
+void server_debug(char * str)
 {
 #ifdef __DEBUG__
-    OutputDebugString( str );
-    printf( str );
+    OutputDebugString(str);
+    printf(str);
 #endif
 }
 
@@ -22,7 +22,7 @@ SERVICE_STATUS gStatus;
 
 HANDLE ghServiceStopEvent;
 
-void SetServiceStop( void )
+void SetServiceStop(void)
 {
     gStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
     gStatus.dwCurrentState = SERVICE_STOPPED;
@@ -30,10 +30,10 @@ void SetServiceStop( void )
     gStatus.dwWin32ExitCode = 0;
     gStatus.dwCheckPoint = 0;
     gStatus.dwWaitHint = 0;
-    SetServiceStatus( ghStatusHandle, &gStatus );
+    SetServiceStatus(ghStatusHandle, &gStatus);
 }
 
-void SetServiceRuning( void )
+void SetServiceRuning(void)
 {
     gStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
     gStatus.dwCurrentState = SERVICE_RUNNING;
@@ -41,11 +41,10 @@ void SetServiceRuning( void )
     gStatus.dwWin32ExitCode = NO_ERROR;
     gStatus.dwCheckPoint = 0;
     gStatus.dwWaitHint = 0;
-
-    SetServiceStatus( ghStatusHandle, &gStatus );
+    SetServiceStatus(ghStatusHandle, &gStatus);
 }
 // why pending
-void SetServicePending( void )
+void SetServicePending(void)
 {
     gStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
     gStatus.dwCurrentState = SERVICE_STOP_PENDING;
@@ -53,28 +52,25 @@ void SetServicePending( void )
     gStatus.dwWin32ExitCode = NO_ERROR;
     gStatus.dwCheckPoint = 2;
     gStatus.dwWaitHint = 0;
-
-    SetServiceStatus( ghStatusHandle, &gStatus );
+    SetServiceStatus(ghStatusHandle, &gStatus);
 }
 
-void WINAPI ServiceControl( DWORD dwOpcode )
+void WINAPI ServiceControl(DWORD dwOpcode)
 {
-    switch ( dwOpcode )
-    {
+    switch (dwOpcode) {
     case SERVICE_CONTROL_STOP:
-        SetEvent( ghServiceStopEvent );
+        SetEvent(ghServiceStopEvent);
         SetServiceStop();
         ServiceDelete();
-
         break;
-        
+
     case SERVICE_CONTROL_INTERROGATE:
-        SetServiceStatus( ghStatusHandle, &gStatus );
+        SetServiceStatus(ghStatusHandle, &gStatus);
         break;
     }
 }
 
-void ServiceRunning( DWORD dwArgc, LPSTR * lpszArgv )
+void ServiceRunning(DWORD dwArgc, LPSTR * lpszArgv)
 {
     /*
     ghServiceStopEvent = CreateEvent( NULL,
@@ -88,10 +84,8 @@ void ServiceRunning( DWORD dwArgc, LPSTR * lpszArgv )
         return;
     }
     */
-
     SetServiceRuning();
     Server();
-
     /*
     while ( 1 )
     {
@@ -101,46 +95,43 @@ void ServiceRunning( DWORD dwArgc, LPSTR * lpszArgv )
         Sleep( 1000 );
     }
     */
-
     return;
 }
 
-void WINAPI ServiceMain( DWORD dwArgc, LPSTR * lpszArgv )
+void WINAPI ServiceMain(DWORD dwArgc, LPSTR * lpszArgv)
 {
-    ghStatusHandle = RegisterServiceCtrlHandler( SERVICE_NAME, ServiceControl );
-    if ( !ghStatusHandle )
+    ghStatusHandle = RegisterServiceCtrlHandler(SERVICE_NAME, ServiceControl);
+
+    if (!ghStatusHandle)
         return;
 
-    ServiceRunning( dwArgc, lpszArgv );
-
+    ServiceRunning(dwArgc, lpszArgv);
     ServiceDelete();
     SetServiceStop();
-
-
 }
 
 void ServiceDelete()
 {
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
+    schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 
-    schSCManager = OpenSCManager( NULL, NULL, SC_MANAGER_ALL_ACCESS );
-    if ( !schSCManager )
+    if (!schSCManager)
         return;
 
-    schService = OpenService( schSCManager, SERVICE_NAME, DELETE );
-    if ( !schService )
-    {
-        CloseServiceHandle( schSCManager );
+    schService = OpenService(schSCManager, SERVICE_NAME, DELETE);
+
+    if (!schService) {
+        CloseServiceHandle(schSCManager);
         server_debug("nima");
         return;
     }
 
-    if ( !DeleteService( schService ) )
+    if (!DeleteService(schService))
         server_debug("gun");
 
-    CloseServiceHandle( schService );
-    CloseServiceHandle( schSCManager );
+    CloseServiceHandle(schService);
+    CloseServiceHandle(schSCManager);
 }
 
 #ifdef __DEBUG__
@@ -148,58 +139,56 @@ void ServiceInstall()
 {
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
-
     char szPath[MAX_PATH] = {0};
-    if ( !GetModuleFileName( NULL, szPath, MAX_PATH ) )
+
+    if (!GetModuleFileName(NULL, szPath, MAX_PATH))
         return;
 
-    schSCManager = OpenSCManager( NULL, NULL, SC_MANAGER_ALL_ACCESS );
-    if ( !schSCManager )
+    schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+
+    if (!schSCManager)
         return;
 
-    schService = CreateService( schSCManager,
-                                SERVICE_NAME,
-                                SERVICE_NAME,
-                                SERVICE_ALL_ACCESS,
-                                SERVICE_WIN32_OWN_PROCESS,
-                                SERVICE_AUTO_START,
-                                SERVICE_ERROR_NORMAL,
-                                szPath,
-                                NULL,
-                                NULL,
-                                NULL,
-                                NULL,
-                                NULL );
-    if ( !schService )
-    {
-        CloseServiceHandle( schSCManager );
+    schService = CreateService(schSCManager,
+                               SERVICE_NAME,
+                               SERVICE_NAME,
+                               SERVICE_ALL_ACCESS,
+                               SERVICE_WIN32_OWN_PROCESS,
+                               SERVICE_AUTO_START,
+                               SERVICE_ERROR_NORMAL,
+                               szPath,
+                               NULL,
+                               NULL,
+                               NULL,
+                               NULL,
+                               NULL);
+
+    if (!schService) {
+        CloseServiceHandle(schSCManager);
         return;
     }
 
-    CloseServiceHandle( schSCManager );
-    CloseServiceHandle( schService );
+    CloseServiceHandle(schSCManager);
+    CloseServiceHandle(schService);
 }
 #endif
 
-int main( int argc, char **argv )
+int main(int argc, char **argv)
 {
-   
 #ifdef __DEBUG__
-    if ( argc > 1 && argv[1][0] == 'i' )
-    {
+
+    if (argc > 1 && argv[1][0] == 'i') {
         ServiceInstall();
+        printf("service install");
         return 0;
     }
-#endif
 
-    SERVICE_TABLE_ENTRY DispatchTable[] = 
-    {
+#endif
+    SERVICE_TABLE_ENTRY DispatchTable[] = {
         { SERVICE_NAME, ServiceMain },
         { NULL, NULL }
     };
-
     // 服务程序启动的时候必须是这个函数在响应。
-    StartServiceCtrlDispatcher( DispatchTable );
-
+    StartServiceCtrlDispatcher(DispatchTable);
     return 0;
 }
